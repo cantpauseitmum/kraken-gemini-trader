@@ -9,6 +9,7 @@ import { geminiService } from './services/geminiService.js';
 import { paperTradingEngine } from './services/paperTradingEngine.js';
 import { liveTradingEngine } from './services/liveTradingEngine.js';
 import { backtestEngine } from './services/backtestEngine.js';
+import { strategyManager } from './services/strategyManager.js';
 
 dotenv.config();
 
@@ -91,6 +92,41 @@ app.post('/api/settings', (req, res) => {
   const updated = storage.saveSettings(req.body);
   startAutoTradeLoop();
   res.json({ success: true, settings: updated });
+});
+
+// ---------------- STRATEGY PRESETS API ----------------
+app.get('/api/strategies', (req, res) => {
+  res.json(strategyManager.getStrategies());
+});
+
+app.post('/api/strategies/save', (req, res) => {
+  try {
+    const saved = strategyManager.saveStrategy(req.body);
+    res.json({ success: true, strategy: saved });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/strategies/activate', (req, res) => {
+  try {
+    const { id } = req.body;
+    const updatedSettings = strategyManager.activateStrategy(id);
+    startAutoTradeLoop();
+    res.json({ success: true, settings: updatedSettings });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.delete('/api/strategies/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = strategyManager.deleteStrategy(id);
+    res.json({ success: deleted });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // Independent API connection test endpoints

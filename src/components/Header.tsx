@@ -9,7 +9,8 @@ import {
   DollarSign,
   Play,
   Pause,
-  AlertTriangle
+  AlertTriangle,
+  Sliders
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -69,6 +70,7 @@ export const Header: React.FC<HeaderProps> = ({
       <nav className="flex items-center gap-1 bg-gray-900/60 p-1.5 rounded-xl border border-gray-800">
         {[
           { id: 'dashboard', label: 'Live Dashboard', icon: Activity },
+          { id: 'strategies', label: 'Strategy Presets', icon: Sliders },
           { id: 'backtest', label: 'Backtest Lab', icon: Zap },
           { id: 'positions', label: 'Positions', icon: DollarSign },
           { id: 'risk', label: 'Risk & Guardrails', icon: ShieldAlert },

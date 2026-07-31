@@ -6,6 +6,7 @@ import { BacktestLab } from './components/BacktestLab';
 import { PositionsTable } from './components/PositionsTable';
 import { RiskControls } from './components/RiskControls';
 import { SettingsModal } from './components/SettingsModal';
+import { StrategyManager } from './components/StrategyManager';
 import { AppSettings, KrakenTicker, OHLCV, TradePosition, ThoughtLog, BacktestResult } from './types';
 
 export const App: React.FC = () => {
@@ -190,6 +191,18 @@ export const App: React.FC = () => {
     }
   };
 
+  const handleActivateStrategy = async (id: string) => {
+    const res = await fetch('/api/strategies/activate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      setSettings(data.settings);
+    }
+  };
+
   if (!settings) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-dark-bg text-gray-400">
@@ -239,6 +252,10 @@ export const App: React.FC = () => {
               <GeminiThoughtStream thoughts={thoughts} isAnalyzing={isAnalyzing} />
             </div>
           </div>
+        )}
+
+        {activeTab === 'strategies' && (
+          <StrategyManager onActivateStrategy={handleActivateStrategy} />
         )}
 
         {activeTab === 'backtest' && (

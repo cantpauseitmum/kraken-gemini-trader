@@ -1,6 +1,8 @@
 node_modules
 dist
 data
+data/strategies.json
+data/*.json
 .env
 .env.local
 *.log
