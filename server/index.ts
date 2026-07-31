@@ -243,7 +243,46 @@ app.post('/api/ai/analyze', async (req, res) => {
       thoughtLog,
     });
   } catch (e: any) {
-    res.status(500).json({ error: e.message });
+    const rawMsg = e.message || 'Unknown analysis error';
+    let provider: 'GEMINI' | 'KRAKEN' | 'SYSTEM' = 'SYSTEM';
+    let suggestion = 'Check your API configuration and logs.';
+
+    if (rawMsg.toLowerCase().includes('gemini') || rawMsg.includes('429') || rawMsg.includes('404')) {
+      provider = 'GEMINI';
+      if (rawMsg.includes('429')) {
+        suggestion = 'Gemini API Rate Limit hit. Wait 60 seconds or switch model to gemini-2.0-flash in Settings.';
+      } else if (rawMsg.includes('404')) {
+        suggestion = 'Gemini Model not found. Click "Download Available Models" in Settings to update.';
+      } else {
+        suggestion = 'Verify your Gemini API Key in Settings Modal.';
+      }
+    } else if (rawMsg.toLowerCase().includes('kraken') || rawMsg.includes('API-Key') || rawMsg.includes('Signature')) {
+      provider = 'KRAKEN';
+      suggestion = 'Verify your Kraken API Key & Secret permissions (Query Funds & Place Orders enabled).';
+    }
+
+    const errThought = {
+      id: `err_${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      pair: req.body?.pair || 'XBTUSD',
+      action: 'ERROR' as const,
+      confidence: 0,
+      price: 0,
+      reasoning: `[${provider} ERROR] ${rawMsg}`,
+      technicalIndicators: {},
+      riskLevel: 'HIGH' as const,
+      mode: storage.getSettings().tradingMode,
+      logType: 'ERROR' as const,
+      errorDetails: {
+        provider,
+        code: 'ANALYSIS_FAILURE',
+        rawMessage: rawMsg,
+        suggestion,
+      },
+    };
+    storage.addThought(errThought);
+
+    res.status(500).json({ error: e.message, thoughtLog: errThought });
   }
 });
 
