@@ -1,79 +1,114 @@
-# 🚀 Kraken Gemini AI Trader
+# 🚀 Kraken Gemini AI Trader (v0.0.8-alpha)
 
-An autonomous AI-powered cryptocurrency trading system operating on **Google Gemini Pro**, integrated directly with **Kraken Exchange**. Features **Paper Trading**, **Real-Money Trading**, a **Historical Backtesting Engine**, and a complete **Docker containerization setup**.
+An autonomous AI-powered cryptocurrency trading system operating on **Google Gemini Pro**, integrated directly with **Kraken Exchange**. Features **Paper Trading**, **Real-Money Trading**, a **Strategy Presets Manager**, **Historical Backtesting Engine**, and complete **Docker & Portainer deployment setups**.
 
 ---
 
 ## 🌟 Key Features
 
 - **🧠 Gemini Pro AI Strategy Engine**:
-  - Multi-indicator market evaluation (RSI 14, MACD 12/26/9, SMA 20/50/200, Bollinger Bands, Volume Delta).
-  - Generates structured JSON trade recommendations (`BUY`, `SELL`, `HOLD`, Position Size %, Stop Loss %, Take Profit %, Confidence %, Rationale).
+  - Multi-indicator market analysis (RSI 14, MACD 12/26/9, SMA 20/50/200, Bollinger Bands, Volume Delta).
+  - Outputs structured JSON trade signals (`BUY`, `SELL`, `HOLD`, Position Size %, Stop Loss %, Take Profit %, Confidence %, Rationale).
   - Dynamic Google ModelService integration with live model downloader (`gemini-2.0-flash`, `gemini-1.5-flash`, `gemini-1.5-pro-latest`).
 
-- **📈 Exchange & Simulation Engines**:
-  - **Kraken REST & Private API**: Fetches real-time ticker data, orderbooks, OHLCV candles, and executes signed HMAC-SHA512 live orders.
-  - **Paper Trading Engine**: Virtual capital simulation ($10,000 USD default) with realistic maker/taker fee modeling (0.26%), auto-stop loss/take profit triggers, and PnL ledger.
-  - **Backtesting Lab**: Tests quantitative AI strategies on historical Kraken OHLCV candles (15m, 1h, 4h, 1d) with equity curves, Sharpe ratio, win rate %, max drawdown %, and trade logs.
+- **🎛️ Strategy Presets & Custom Profiles**:
+  - Pre-built templates: **Conservative Trend Follower**, **Gemini Deep Quant (Balanced)**, and **Aggressive Momentum Scalper**.
+  - Custom Strategy Builder: Configure AI Personas, custom technical indicator thresholds, and risk rules.
+  - Privacy-First Storage: User strategy presets saved locally in `data/strategies.json` (excluded from git via `.gitignore`).
+
+- **📈 Trading & Simulation Engines**:
+  - **Kraken REST & Private API**: Real-time price tickers, orderbooks, OHLCV candles, and signed HMAC-SHA512 live orders.
+  - **Paper Trading Engine**: Virtual capital simulation ($10,000 USD default) with fee modeling (0.26%), auto-stop loss/take profit triggers, and PnL ledger.
+  - **Backtesting Lab**: Tests quantitative strategies on historical Kraken OHLCV candles (15m, 1h, 4h, 1d) with equity curves, Sharpe ratio, win rate %, max drawdown %, and trade logs.
 
 - **🛡️ Safety & Risk Guardrails**:
   - Max position size cap (% per order)
-  - Daily loss limit auto-lock
+  - Daily loss limit threshold (auto-locks real trading if breached)
   - Require manual confirmation mode toggle
   - **Emergency Panic Kill Switch**: Instant kill switch to halt all live orders.
 
-- **🐳 Docker Containerized**:
-  - Multi-stage `Dockerfile` and `docker-compose.yml` for single-command launch.
-  - Volume persistence (`./data`) for local trade history, settings, and backtest runs.
+- **🔍 Provider Diagnostics & Update Checker**:
+  - Independent **"Test Gemini Connection"** and **"Test Kraken Connection"** buttons in API Settings.
+  - **Live Git Version Checker**: Automatic GitHub update notification badge when new release tags are published.
 
 ---
 
-## 🛠️ Quickstart with Docker
+## 🐳 Deployment Guide
 
-### 1. Clone & Configure Environment
+### Option 1: Portainer Stack (Recommended for Private Servers)
 
-```bash
-git clone https://github.com/cantpauseitmum/kraken-gemini-trader.git
-cd kraken-gemini-trader
+In Portainer (**Stacks** ➔ **Add stack** ➔ **Web editor**), paste the following configuration:
+
+```yaml
+services:
+  kraken-gemini-trader:
+    build:
+      context: https://github.com/cantpauseitmum/kraken-gemini-trader.git#v0.0.8-alpha
+    container_name: kraken-gemini-trader
+    ports:
+      - "8095:3000"
+      - "8096:3001"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.0-flash}
+      - KRAKEN_API_KEY=${KRAKEN_API_KEY}
+      - KRAKEN_API_SECRET=${KRAKEN_API_SECRET}
+      - DEFAULT_TRADING_MODE=${DEFAULT_TRADING_MODE:-PAPER}
+      - INITIAL_PAPER_BALANCE=${INITIAL_PAPER_BALANCE:-10000}
+    volumes:
+      - kraken_trader_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  kraken_trader_data:
 ```
 
-Copy `.env.example` to `.env`:
+Add your environment variables under **Environment variables**:
+- `GEMINI_API_KEY`: `your_gemini_api_key_here`
+- `KRAKEN_API_KEY`: `your_kraken_api_key_here`
+- `KRAKEN_API_SECRET`: `your_kraken_api_secret_here`
 
-```bash
-cp .env.example .env
-```
-
-Edit `.env` with your API credentials:
-
-```env
-GEMINI_API_KEY=your_gemini_pro_api_key
-GEMINI_MODEL=gemini-2.0-flash
-KRAKEN_API_KEY=your_kraken_api_key
-KRAKEN_API_SECRET=your_kraken_api_secret
-PORT=3001
-DEFAULT_TRADING_MODE=PAPER
-```
-
-### 2. Launch with Docker Compose
-
-```bash
-docker compose up -d --build
-```
-
-Access the interactive web dashboard at:
-👉 **[http://localhost:3000](http://localhost:3000)** or **[http://localhost:3001](http://localhost:3001)**
+Click **Deploy the stack**. Access the web dashboard at **`http://YOUR_SERVER_IP:8095`**.
 
 ---
 
-## 📡 API Diagnostics & Testing
+### Option 2: Standard Docker Compose
 
-The system includes built-in provider diagnostic endpoints:
-- **Test Gemini API**: `POST /api/settings/test-gemini`
-- **Test Kraken API**: `POST /api/settings/test-kraken`
-- **Fetch Live Models**: `POST /api/settings/fetch-gemini-models`
+1. **Clone Repository & Configure Environment**:
+   ```bash
+   git clone https://github.com/cantpauseitmum/kraken-gemini-trader.git
+   cd kraken-gemini-trader
+   cp .env.example .env
+   ```
+
+2. **Edit `.env`**:
+   ```env
+   GEMINI_API_KEY=your_gemini_pro_api_key
+   GEMINI_MODEL=gemini-2.0-flash
+   KRAKEN_API_KEY=your_kraken_api_key
+   KRAKEN_API_SECRET=your_kraken_api_secret
+   HOST_PORT=8095
+   API_PORT=8096
+   DEFAULT_TRADING_MODE=PAPER
+   ```
+
+3. **Build & Run Container**:
+   ```bash
+   docker compose up -d --build
+   ```
 
 ---
 
-## ⚠️ Disclaimer
+## 📡 Diagnostic API Endpoints
 
-*Trading cryptocurrencies carries significant financial risk. This tool is provided for educational and experimental purposes. Always backtest strategies and start with Paper Trading mode before committing real funds.*
+- `GET /api/health`: Health status & active panic switch check.
+- `GET /api/version/check`: Live GitHub release update checker.
+- `POST /api/settings/test-gemini`: Gemini API connection test.
+- `POST /api/settings/test-kraken`: Kraken API connection test.
+- `POST /api/settings/fetch-gemini-models`: Download available Gemini models.
+
+---
+
+## ⚠️ Safety Disclaimer
+
+*Trading cryptocurrencies carries significant financial risk. This software is for educational, research, and algorithmic testing purposes. Always perform backtesting and paper trading before deploying real capital.*
