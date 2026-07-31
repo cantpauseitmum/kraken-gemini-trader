@@ -7,6 +7,14 @@ interface GeminiThoughtStreamProps {
   isAnalyzing: boolean;
 }
 
+const formatDateTime = (ts: string) => {
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return ts;
+  const dateStr = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+  return `${dateStr} • ${timeStr}`;
+};
+
 export const GeminiThoughtStream: React.FC<GeminiThoughtStreamProps> = ({ thoughts, isAnalyzing }) => {
   const [filterType, setFilterType] = useState<'ALL' | 'SIGNALS' | 'ERRORS'>('ALL');
 
@@ -100,7 +108,7 @@ export const GeminiThoughtStream: React.FC<GeminiThoughtStreamProps> = ({ though
                     </div>
                     <div className="flex items-center gap-1.5 text-gray-400 font-mono text-[10px]">
                       <Clock className="w-3 h-3 text-rose-400" />
-                      {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                      {formatDateTime(log.timestamp)}
                     </div>
                   </div>
 
@@ -135,7 +143,7 @@ export const GeminiThoughtStream: React.FC<GeminiThoughtStreamProps> = ({ though
                   </div>
                   <div className="flex items-center gap-1 text-gray-400 font-mono text-[10px] shrink-0">
                     <Clock className="w-3 h-3 text-cyan-400" />
-                    {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {formatDateTime(log.timestamp)}
                   </div>
                 </div>
               );
@@ -161,7 +169,7 @@ export const GeminiThoughtStream: React.FC<GeminiThoughtStreamProps> = ({ though
 
                   <div className="flex items-center gap-2 text-gray-400 font-mono text-[10px]">
                     <Clock className="w-3 h-3" />
-                    {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {formatDateTime(log.timestamp)}
                   </div>
                 </div>
 

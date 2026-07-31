@@ -22,6 +22,7 @@ export const MarketChart: React.FC<MarketChartProps> = ({
   onSelectTimeframe,
 }) => {
   const [chartType, setChartType] = useState<'candle' | 'line'>('candle');
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
   if (!candles || candles.length === 0) {
     return (
@@ -32,7 +33,6 @@ export const MarketChart: React.FC<MarketChartProps> = ({
     );
   }
 
-  const prices = candles.map((c) => c.close);
   const minPrice = Math.min(...candles.map((c) => c.low)) * 0.998;
   const maxPrice = Math.max(...candles.map((c) => c.high)) * 1.002;
   const rangePrice = maxPrice - minPrice || 1;
@@ -43,7 +43,7 @@ export const MarketChart: React.FC<MarketChartProps> = ({
   const height = 360;
   const candleWidth = Math.max(3, (width / candles.length) * 0.7);
 
-  const getX = (index: number) => (index / (candles.length - 1 || 1)) * (width - 40) + 20;
+  const getX = (index: number) => (index / (candles.length - 1 || 1)) * (width - 60) + 20;
   const getY = (val: number) => height - 50 - ((val - minPrice) / rangePrice) * (height - 80);
 
   // Compute SMA 20 points
@@ -56,7 +56,30 @@ export const MarketChart: React.FC<MarketChartProps> = ({
   const sma20Path = sma20Points.map((p, idx) => `${idx === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
 
   const currentPrice = ticker ? ticker.last : candles[candles.length - 1].close;
+  const currentY = getY(currentPrice);
   const isUp = ticker ? ticker.last >= ticker.open24h : candles[candles.length - 1].close >= candles[0].close;
+
+  // Active hover candle info
+  const activeCandle = hoverIndex !== null ? candles[hoverIndex] : candles[candles.length - 1];
+
+  const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const svgX = (mouseX / rect.width) * width;
+    
+    // Find closest candle
+    let closestIdx = 0;
+    let minDiff = Infinity;
+    candles.forEach((_, idx) => {
+      const cx = getX(idx);
+      const diff = Math.abs(cx - svgX);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestIdx = idx;
+      }
+    });
+    setHoverIndex(closestIdx);
+  };
 
   return (
     <div className="glass-panel p-5 rounded-2xl border border-gray-800 space-y-4">
@@ -126,9 +149,28 @@ export const MarketChart: React.FC<MarketChartProps> = ({
         </div>
       </div>
 
+      {/* Hover Info Banner */}
+      {activeCandle && (
+        <div className="flex flex-wrap items-center gap-4 px-3 py-1.5 rounded-lg bg-slate-900/90 border border-gray-800 font-mono text-[11px] text-gray-300">
+          <span className="text-gray-400">
+            {new Date(activeCandle.time * 1000).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+          </span>
+          <span>O: <strong className="text-white">${activeCandle.open.toFixed(2)}</strong></span>
+          <span>H: <strong className="text-emerald-400">${activeCandle.high.toFixed(2)}</strong></span>
+          <span>L: <strong className="text-rose-400">${activeCandle.low.toFixed(2)}</strong></span>
+          <span>C: <strong className="text-white">${activeCandle.close.toFixed(2)}</strong></span>
+          <span>Vol: <strong className="text-blue-300">{activeCandle.volume.toFixed(2)}</strong></span>
+        </div>
+      )}
+
       {/* SVG Canvas Chart */}
       <div className="relative w-full h-[320px] bg-slate-950/60 rounded-xl overflow-hidden p-2">
-        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible">
+        <svg
+          viewBox={`0 0 ${width} ${height}`}
+          className="w-full h-full cursor-crosshair overflow-visible"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={() => setHoverIndex(null)}
+        >
           <defs>
             <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.4" />
@@ -136,15 +178,31 @@ export const MarketChart: React.FC<MarketChartProps> = ({
             </linearGradient>
           </defs>
 
-          {/* Grid lines */}
+          {/* Price Horizontal Grid lines */}
           {[0.25, 0.5, 0.75].map((factor, i) => {
             const y = height - 50 - factor * (height - 80);
             const priceVal = minPrice + factor * rangePrice;
             return (
               <g key={i}>
-                <line x1="20" y1={y} x2={width - 20} y2={y} stroke="#1f2937" strokeDasharray="4 4" strokeWidth="1" />
-                <text x={width - 15} y={y + 3} fill="#6b7280" fontSize="10" fontFamily="Fira Code" textAnchor="start">
+                <line x1="20" y1={y} x2={width - 45} y2={y} stroke="#1f2937" strokeDasharray="4 4" strokeWidth="1" />
+                <text x={width - 40} y={y + 3} fill="#6b7280" fontSize="10" fontFamily="Fira Code" textAnchor="start">
                   ${priceVal.toFixed(0)}
+                </text>
+              </g>
+            );
+          })}
+
+          {/* Time Vertical Grid Lines & Labels */}
+          {[0.2, 0.4, 0.6, 0.8].map((factor, i) => {
+            const idx = Math.floor(factor * (candles.length - 1));
+            if (!candles[idx]) return null;
+            const x = getX(idx);
+            const timeStr = new Date(candles[idx].time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            return (
+              <g key={`t_${i}`}>
+                <line x1={x} y1="20" x2={x} y2={height - 30} stroke="#1f2937" strokeDasharray="3 3" strokeWidth="0.8" />
+                <text x={x} y={height - 10} fill="#6b7280" fontSize="9" fontFamily="Fira Code" textAnchor="middle">
+                  {timeStr}
                 </text>
               </g>
             );
@@ -153,8 +211,8 @@ export const MarketChart: React.FC<MarketChartProps> = ({
           {/* Volume Bars */}
           {candles.map((c, i) => {
             const x = getX(i);
-            const volHeight = (c.volume / maxVolume) * 40;
-            const y = height - 15 - volHeight;
+            const volHeight = (c.volume / maxVolume) * 35;
+            const y = height - 25 - volHeight;
             const isBullish = c.close >= c.open;
             return (
               <rect
@@ -219,12 +277,27 @@ export const MarketChart: React.FC<MarketChartProps> = ({
           {/* SMA 20 Overlay Line */}
           {sma20Path && <path d={sma20Path} fill="none" stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="3 3" />}
 
+          {/* Live Price Dashed Line */}
+          <line x1="20" y1={currentY} x2={width - 50} y2={currentY} stroke="#38bdf8" strokeDasharray="2 2" strokeWidth="1.2" />
+          <rect x={width - 48} y={currentY - 9} width="46" height="18" rx="4" fill="#0284c7" />
+          <text x={width - 25} y={currentY + 3} fill="#ffffff" fontSize="9" fontWeight="bold" fontFamily="Fira Code" textAnchor="middle">
+            ${currentPrice > 1000 ? Math.round(currentPrice) : currentPrice.toFixed(2)}
+          </text>
+
+          {/* Hover Crosshair */}
+          {hoverIndex !== null && (
+            <g>
+              <line x1={getX(hoverIndex)} y1="20" x2={getX(hoverIndex)} y2={height - 30} stroke="#94a3b8" strokeWidth="1" strokeDasharray="2 2" />
+              <line x1="20" y1={getY(candles[hoverIndex].close)} x2={width - 50} y2={getY(candles[hoverIndex].close)} stroke="#94a3b8" strokeWidth="1" strokeDasharray="2 2" />
+              <circle cx={getX(hoverIndex)} cy={getY(candles[hoverIndex].close)} r="4" fill="#38bdf8" stroke="#ffffff" strokeWidth="2" />
+            </g>
+          )}
+
           {/* Trade Markers */}
           {positions.map((pos) => {
             if (pos.pair !== activePair) return null;
-            // Match entry timestamp approximate candle index
             const candleIdx = candles.findIndex(
-              (c) => Math.abs(c.time * 1000 - new Date(pos.timestamp).getTime()) < selectedTimeframe * 60000 * 2
+              (c) => Math.abs(c.time * 1000 - new Date(pos.timestamp).getTime()) < selectedTimeframe * 60000 * 3
             );
             if (candleIdx === -1) return null;
             const x = getX(candleIdx);
