@@ -1,4 +1,4 @@
-# 🚀 KrakAI Trader (v0.1.5-beta)
+# 🚀 KrakAI Trader
 
 An autonomous AI-powered cryptocurrency trading system operating on **Google Gemini Pro**, integrated directly with **Kraken Exchange**. Features **Paper Trading**, **Real-Money Trading**, a **Strategy Presets Manager** with live **Dashboard Active Strategy Display**, **Net Fee Breakeven Protection**, **Historical Backtesting Engine**, and complete **Docker & Portainer deployment setups**.
 
@@ -43,9 +43,9 @@ An autonomous AI-powered cryptocurrency trading system operating on **Google Gem
 
 ## 🐳 Deployment Guide
 
-### Option 1: Portainer Stack (Recommended for Private Servers)
+### Option 1: Portainer Stack with Watchtower (Recommended for Auto-Updates)
 
-In Portainer (**Stacks** ➔ **Add stack** ➔ **Web editor**), paste the following configuration:
+In Portainer (**Stacks** ➔ **Add stack** ➔ **Web editor** or add Watchtower to your `infrastructure-stack`), use the following configuration:
 
 ```yaml
 services:
@@ -55,7 +55,6 @@ services:
     container_name: krakai-trader
     ports:
       - "8095:3000"
-      - "8096:3001"
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.0-flash}
@@ -65,6 +64,16 @@ services:
       - INITIAL_PAPER_BALANCE=${INITIAL_PAPER_BALANCE:-10000}
     volumes:
       - kraken_trader_data:/app/data
+    restart: unless-stopped
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: krakai-watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_SCHEDULE=0 30 4 * * *
+      - WATCHTOWER_CLEANUP=true
     restart: unless-stopped
 
 volumes:
@@ -96,7 +105,6 @@ Click **Deploy the stack**. Access the web dashboard at **`http://YOUR_SERVER_IP
    KRAKEN_API_KEY=your_kraken_api_key
    KRAKEN_API_SECRET=your_kraken_api_secret
    HOST_PORT=8095
-   API_PORT=8096
    DEFAULT_TRADING_MODE=PAPER
    ```
 
