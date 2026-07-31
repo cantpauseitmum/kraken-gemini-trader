@@ -6,7 +6,6 @@ services:
     container_name: krakai-trader
     ports:
       - "${HOST_PORT:-8095}:3000"
-      - "${API_PORT:-8096}:3001"
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.0-flash}

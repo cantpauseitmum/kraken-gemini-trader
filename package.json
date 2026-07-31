@@ -1,6 +1,6 @@
 {
   "name": "krakai-trader",
-  "version": "0.0.9",
+  "version": "0.1.0-beta",
   "type": "module",
   "description": "KrakAI Trader - AI Trading System powered by Gemini Pro with Kraken integration",
   "main": "server/index.ts",
@@ -19,7 +19,8 @@
     "express": "^4.19.2",
     "lucide-react": "^0.395.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "tsx": "^4.15.7"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
