@@ -5,11 +5,11 @@ services:
       dockerfile: Dockerfile
     container_name: kraken-gemini-trader
     ports:
-      - "3000:3000"
-      - "3001:3001"
+      - "${HOST_PORT:-8095}:3000"
+      - "${API_PORT:-8096}:3001"
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-1.5-pro}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.0-flash}
       - KRAKEN_API_KEY=${KRAKEN_API_KEY}
       - KRAKEN_API_SECRET=${KRAKEN_API_SECRET}
       - DEFAULT_TRADING_MODE=${DEFAULT_TRADING_MODE:-PAPER}
