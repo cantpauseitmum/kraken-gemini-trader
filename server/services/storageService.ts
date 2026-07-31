@@ -8,6 +8,7 @@ export interface AppSettings {
   krakenApiSecret: string;
   tradingMode: 'PAPER' | 'REAL';
   activePair: string;
+  activeStrategyId?: string;
   autoTradeEnabled: boolean;
   tradeIntervalMinutes: number;
   paperBalanceUSD: number;
@@ -92,6 +93,7 @@ const defaultSettings: AppSettings = {
   krakenApiSecret: process.env.KRAKEN_API_SECRET || '',
   tradingMode: (process.env.DEFAULT_TRADING_MODE as 'PAPER' | 'REAL') || 'PAPER',
   activePair: process.env.DEFAULT_PAIR || 'XBTUSD',
+  activeStrategyId: 'builtin_balanced',
   autoTradeEnabled: false,
   tradeIntervalMinutes: 15,
   paperBalanceUSD: parseFloat(process.env.INITIAL_PAPER_BALANCE || '10000'),

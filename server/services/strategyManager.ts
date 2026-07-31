@@ -212,6 +212,7 @@ export class StrategyManager {
     }
 
     const updated = storage.saveSettings({
+      activeStrategyId: strat.id,
       tradeIntervalMinutes: strat.timeframeMinutes,
       riskManagement: strat.riskManagement,
     });

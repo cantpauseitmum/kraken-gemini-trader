@@ -16,6 +16,7 @@ export const App: React.FC = () => {
   const [positions, setPositions] = useState<TradePosition[]>([]);
   const [thoughts, setThoughts] = useState<ThoughtLog[]>([]);
   const [backtests, setBacktests] = useState<BacktestResult[]>([]);
+  const [strategies, setStrategies] = useState<any[]>([]);
   const [versionStatus, setVersionStatus] = useState<any>(null);
 
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -31,9 +32,20 @@ export const App: React.FC = () => {
     fetchPositions();
     fetchThoughts();
     fetchBacktests();
+    fetchStrategies();
     checkHealth();
     checkVersionStatus();
   }, []);
+
+  const fetchStrategies = async () => {
+    try {
+      const res = await fetch('/api/strategies');
+      const data = await res.json();
+      setStrategies(data);
+    } catch (e) {
+      console.warn('Error fetching strategies:', e);
+    }
+  };
 
   const checkVersionStatus = async () => {
     try {
@@ -243,26 +255,78 @@ export const App: React.FC = () => {
 
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
         {activeTab === 'dashboard' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              <MarketChart
-                candles={candles}
-                ticker={ticker}
-                positions={positions}
-                activePair={activePair}
-                onSelectPair={setActivePair}
-                selectedTimeframe={selectedTimeframe}
-                onSelectTimeframe={setSelectedTimeframe}
-              />
-              <PositionsTable
-                positions={positions}
-                onClosePosition={handleClosePosition}
-                paperBalance={settings.paperBalanceUSD}
-              />
-            </div>
+          <div className="space-y-6">
+            {/* Active Strategy Profile Banner */}
+            {(() => {
+              const activeStrat = strategies.find((s) => s.id === settings.activeStrategyId) || strategies[0];
+              if (!activeStrat) return null;
+              return (
+                <div className="glass-panel p-4 rounded-2xl border border-blue-500/30 bg-gradient-to-r from-slate-900/90 via-indigo-950/30 to-slate-900/90 flex flex-wrap items-center justify-between gap-4 shadow-lg shadow-blue-500/5">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-400 font-bold">
+                      🎯
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                          Active Strategy
+                        </span>
+                        <h3 className="font-bold text-sm text-white">{activeStrat.name}</h3>
+                        <span className="text-xs text-gray-400 font-mono">({activeStrat.aiPersona})</span>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-0.5">{activeStrat.description}</p>
+                    </div>
+                  </div>
 
-            <div>
-              <GeminiThoughtStream thoughts={thoughts} isAnalyzing={isAnalyzing} />
+                  {/* Key Parameter Indicators */}
+                  <div className="flex items-center gap-4 text-xs font-mono">
+                    <div className="hidden md:block text-right">
+                      <span className="text-[10px] text-gray-500 block">TIMEFRAME</span>
+                      <span className="text-white font-bold">{activeStrat.timeframeMinutes}m</span>
+                    </div>
+
+                    <div className="hidden md:block text-right">
+                      <span className="text-[10px] text-gray-500 block">MAX SIZE</span>
+                      <span className="text-blue-400 font-bold">{activeStrat.riskManagement.maxPositionSizePercent}%</span>
+                    </div>
+
+                    <div className="hidden md:block text-right">
+                      <span className="text-[10px] text-gray-500 block">STOP LOSS / TAKE PROFIT</span>
+                      <span className="text-rose-400 font-bold">{activeStrat.riskManagement.stopLossPercent}%</span> / <span className="text-emerald-400 font-bold">{activeStrat.riskManagement.takeProfitPercent}%</span>
+                    </div>
+
+                    <button
+                      onClick={() => setActiveTab('strategies')}
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600/20 text-blue-300 border border-blue-500/40 hover:bg-blue-600/30 transition-all"
+                    >
+                      Switch Strategy
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                <MarketChart
+                  candles={candles}
+                  ticker={ticker}
+                  positions={positions}
+                  activePair={activePair}
+                  onSelectPair={setActivePair}
+                  selectedTimeframe={selectedTimeframe}
+                  onSelectTimeframe={setSelectedTimeframe}
+                />
+                <PositionsTable
+                  positions={positions}
+                  onClosePosition={handleClosePosition}
+                  paperBalance={settings.paperBalanceUSD}
+                />
+              </div>
+
+              <div>
+                <GeminiThoughtStream thoughts={thoughts} isAnalyzing={isAnalyzing} />
+              </div>
             </div>
           </div>
         )}

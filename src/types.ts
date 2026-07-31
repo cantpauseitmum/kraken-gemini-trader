@@ -5,6 +5,7 @@ export interface AppSettings {
   krakenApiSecret: string;
   tradingMode: 'PAPER' | 'REAL';
   activePair: string;
+  activeStrategyId?: string;
   autoTradeEnabled: boolean;
   tradeIntervalMinutes: number;
   paperBalanceUSD: number;
