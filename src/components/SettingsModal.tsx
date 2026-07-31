@@ -10,8 +10,6 @@ interface SettingsModalProps {
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings, onSave }) => {
-  const [geminiApiKey, setGeminiApiKey] = useState(settings.geminiApiKey);
-  const [geminiModel, setGeminiModel] = useState(settings.geminiModel || 'gemini-2.0-flash');
   const [geminiApiKey, setGeminiApiKey] = useState(settings?.geminiApiKey || '');
   const [geminiModel, setGeminiModel] = useState(settings?.geminiModel || 'gemini-2.0-flash');
   const [availableModels, setAvailableModels] = useState<{ id: string; displayName: string }[]>([
