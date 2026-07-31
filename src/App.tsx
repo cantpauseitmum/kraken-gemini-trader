@@ -16,6 +16,7 @@ export const App: React.FC = () => {
   const [positions, setPositions] = useState<TradePosition[]>([]);
   const [thoughts, setThoughts] = useState<ThoughtLog[]>([]);
   const [backtests, setBacktests] = useState<BacktestResult[]>([]);
+  const [versionStatus, setVersionStatus] = useState<any>(null);
 
   const [activeTab, setActiveTab] = useState('dashboard');
   const [activePair, setActivePair] = useState('XBTUSD');
@@ -31,7 +32,18 @@ export const App: React.FC = () => {
     fetchThoughts();
     fetchBacktests();
     checkHealth();
+    checkVersionStatus();
   }, []);
+
+  const checkVersionStatus = async () => {
+    try {
+      const res = await fetch('/api/version/check');
+      const data = await res.json();
+      setVersionStatus(data);
+    } catch (e) {
+      console.warn('Version check error:', e);
+    }
+  };
 
   // Poll ticker & candles for active pair
   useEffect(() => {
@@ -226,6 +238,7 @@ export const App: React.FC = () => {
         onRunAnalysis={handleRunAnalysis}
         panicActive={panicActive}
         onTogglePanic={handleTogglePanic}
+        versionStatus={versionStatus}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">

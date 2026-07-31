@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppSettings } from '../types';
+import { AppSettings, VersionStatus } from '../types';
 import {
   Brain,
   ShieldAlert,
@@ -10,7 +10,8 @@ import {
   Play,
   Pause,
   AlertTriangle,
-  Sliders
+  Sliders,
+  ArrowUpCircle
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -23,6 +24,7 @@ interface HeaderProps {
   onRunAnalysis: () => void;
   panicActive: boolean;
   onTogglePanic: () => void;
+  versionStatus?: VersionStatus | null;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -35,6 +37,7 @@ export const Header: React.FC<HeaderProps> = ({
   onRunAnalysis,
   panicActive,
   onTogglePanic,
+  versionStatus,
 }) => {
   const toggleTradingMode = () => {
     const nextMode = settings.tradingMode === 'PAPER' ? 'REAL' : 'PAPER';
@@ -58,9 +61,22 @@ export const Header: React.FC<HeaderProps> = ({
         <div>
           <div className="flex items-center gap-2">
             <h1 className="font-bold text-lg text-white tracking-wide">Kraken Gemini AI</h1>
-            <span className="px-2 py-0.5 text-xs font-semibold rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
-              Pro v2.0
+            <span className="px-2 py-0.5 text-xs font-semibold rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">
+              {versionStatus?.currentVersion || 'v0.0.6-alpha'}
             </span>
+
+            {versionStatus?.updateAvailable && (
+              <a
+                href={versionStatus.releaseUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-bold rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 transition-all animate-pulse"
+                title={`New release available: ${versionStatus.latestVersion}. Click to view on GitHub.`}
+              >
+                <ArrowUpCircle className="w-3.5 h-3.5 text-amber-400" />
+                Update Available ({versionStatus.latestVersion})
+              </a>
+            )}
           </div>
           <p className="text-xs text-gray-400">Autonomous Trading & Analytics Suite</p>
         </div>

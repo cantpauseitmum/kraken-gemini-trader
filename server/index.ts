@@ -10,6 +10,7 @@ import { paperTradingEngine } from './services/paperTradingEngine.js';
 import { liveTradingEngine } from './services/liveTradingEngine.js';
 import { backtestEngine } from './services/backtestEngine.js';
 import { strategyManager } from './services/strategyManager.js';
+import { versionService } from './services/versionService.js';
 
 dotenv.config();
 
@@ -81,6 +82,16 @@ app.get('/api/health', (req, res) => {
     tradingMode: storage.getSettings().tradingMode,
     panicActive: liveTradingEngine.isPanicStopActive(),
   });
+});
+
+// Version check endpoint
+app.get('/api/version/check', async (req, res) => {
+  try {
+    const status = await versionService.checkVersion();
+    res.json(status);
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // App Settings

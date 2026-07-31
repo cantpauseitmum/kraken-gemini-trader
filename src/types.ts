@@ -73,6 +73,14 @@ export interface ThoughtLog {
   mode: 'PAPER' | 'REAL' | 'BACKTEST';
 }
 
+export interface VersionStatus {
+  currentVersion: string;
+  latestVersion: string;
+  updateAvailable: boolean;
+  releaseUrl: string;
+  checkedAt: string;
+}
+
 export interface BacktestResult {
   id: string;
   pair: string;
