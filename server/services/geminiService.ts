@@ -178,10 +178,13 @@ Volume (24h): ${ticker.volume24h}
 - MACD Line: ${indicators.macd.macdLine} | Signal: ${indicators.macd.signalLine} | Histogram: ${indicators.macd.histogram}
 - Bollinger Bands: Upper $${indicators.bollingerBands.upper} | Middle $${indicators.bollingerBands.middle} | Lower $${indicators.bollingerBands.lower}
 
-[RISK CONSTRAINTS]
-Max Position Size: ${settings.riskManagement.maxPositionSizePercent}% of balance
-Default Stop-Loss: ${settings.riskManagement.stopLossPercent}%
-Default Take-Profit: ${settings.riskManagement.takeProfitPercent}%
+[RISK & TRANSACTION FEE CONSTRAINTS]
+- Kraken Exchange Fee: 0.26% entry + 0.26% exit = 0.52% round-trip fee breakeven.
+- Minimum Net Profit Threshold: Any BUY target or take-profit MUST exceed +0.52% price movement to achieve net positive PnL.
+- CRITICAL NET PROFIT RULE: Do NOT recommend a SELL/exit for minor nominal gains if net returns after 0.52% fees would be negative or break-even. If price is in a tiny profit range below +0.52% net gain, recommend HOLD instead of triggering unnecessary fee erosion.
+- Max Position Size: ${settings.riskManagement.maxPositionSizePercent}% of balance
+- Default Stop-Loss: ${settings.riskManagement.stopLossPercent}%
+- Default Take-Profit: ${settings.riskManagement.takeProfitPercent}%
 
 Respond strictly in valid JSON matching this exact structure:
 {
