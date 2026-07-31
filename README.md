@@ -1,6 +1,6 @@
-# 🚀 KrakAI Trader (v0.1.2-beta)
+# 🚀 KrakAI Trader (v0.1.5-beta)
 
-An autonomous AI-powered cryptocurrency trading system operating on **Google Gemini Pro**, integrated directly with **Kraken Exchange**. Features **Paper Trading**, **Real-Money Trading**, a **Strategy Presets Manager** with live **Dashboard Active Strategy Display**, **Historical Backtesting Engine**, and complete **Docker & Portainer deployment setups**.
+An autonomous AI-powered cryptocurrency trading system operating on **Google Gemini Pro**, integrated directly with **Kraken Exchange**. Features **Paper Trading**, **Real-Money Trading**, a **Strategy Presets Manager** with live **Dashboard Active Strategy Display**, **Net Fee Breakeven Protection**, **Historical Backtesting Engine**, and complete **Docker & Portainer deployment setups**.
 
 ---
 
@@ -11,11 +11,18 @@ An autonomous AI-powered cryptocurrency trading system operating on **Google Gem
   - Outputs structured JSON trade signals (`BUY`, `SELL`, `HOLD`, Position Size %, Stop Loss %, Take Profit %, Confidence %, Rationale).
   - Dynamic Google ModelService integration with live model downloader (`gemini-2.0-flash`, `gemini-1.5-flash`, `gemini-1.5-pro-latest`).
 
+- **🛡️ Net Fee Breakeven Guardrail (+0.52% Rule)**:
+  - Automatically calculates Kraken trading fees (0.26% buy + 0.26% sell = 0.52% round-trip breakeven).
+  - Instructs Gemini Pro to prevent premature exits on minor nominal gains below +0.52% net PnL, avoiding fee drain.
+
 - **🎛️ Strategy Presets & Dashboard Display**:
   - Prominent **Active Strategy Profile Banner** displayed on the Live Dashboard UI with timeframe, position size, and stop loss / take profit indicators.
   - Pre-built templates: **Conservative Trend Follower**, **Gemini Deep Quant (Balanced)**, and **Aggressive Momentum Scalper**.
   - Custom Strategy Builder: Configure AI Personas, custom technical indicator thresholds, and risk rules.
   - Privacy-First Storage: User strategy presets saved locally in `data/strategies.json` (excluded from git via `.gitignore`).
+
+- **🎨 Clean Branding & Browser Favicon**:
+  - Custom SVG AI Sparkle & Kraken logo favicon for browser tabs, bookmarks, and dashboard launchers (Homepage, Flame, Dashy).
 
 - **📈 Trading & Simulation Engines**:
   - **Kraken REST & Private API**: Real-time price tickers, orderbooks, OHLCV candles, and signed HMAC-SHA512 live orders.
