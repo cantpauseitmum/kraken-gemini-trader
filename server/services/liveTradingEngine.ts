@@ -86,6 +86,22 @@ export class LiveTradingEngine {
         };
 
         storage.addPosition(newPos);
+
+        // Log real trade execution event
+        storage.addThought({
+          id: `live_${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          pair,
+          action: 'BUY',
+          confidence: decision.confidence,
+          price: currentPrice,
+          reasoning: `REAL KRAKEN ORDER PLACED: Executed live market BUY for ${volume} ${pair} @ $${currentPrice.toLocaleString()} (TXID: ${res.txid ? res.txid.join(', ') : 'OK'}).`,
+          technicalIndicators: {},
+          riskLevel: decision.riskLevel,
+          mode: 'REAL',
+          logType: 'ORDER',
+        });
+
         return newPos;
       } catch (err: any) {
         console.error('Kraken Live Execution Failed:', err.message);

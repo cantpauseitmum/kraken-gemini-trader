@@ -69,6 +69,22 @@ export class PaperTradingEngine {
       // Deduct balance
       storage.saveSettings({ paperBalanceUSD: balance - allocatedUSD });
       storage.addPosition(newPos);
+
+      // Log trade execution event
+      storage.addThought({
+        id: `exec_${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        pair,
+        action: 'BUY',
+        confidence: decision.confidence,
+        price: currentPrice,
+        reasoning: `PAPER ORDER EXECUTED: Bought ${amount.toFixed(6)} ${pair} @ $${currentPrice.toLocaleString()} (Value: $${allocatedUSD.toFixed(2)} USD). Stop Loss: $${stopLossPrice.toFixed(2)}, Take Profit: $${takeProfitPrice.toFixed(2)}.`,
+        technicalIndicators: {},
+        riskLevel: decision.riskLevel,
+        mode: 'PAPER',
+        logType: 'ORDER',
+      });
+
       return newPos;
     }
 
@@ -122,6 +138,21 @@ export class PaperTradingEngine {
       closeTimestamp: new Date().toISOString(),
       pnlUSD: Math.round(pnlUSD * 100) / 100,
       pnlPercent: Math.round(pnlPercent * 100) / 100,
+    });
+
+    // Log position close event
+    storage.addThought({
+      id: `close_${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      pair: pos.pair,
+      action: 'SELL',
+      confidence: 100,
+      price: closePrice,
+      reasoning: `PAPER POSITION CLOSED (${reason || 'Manual'}): Closed ${pos.pair} @ $${closePrice.toLocaleString()}. Net PnL: ${pnlUSD >= 0 ? '+' : ''}$${pnlUSD.toFixed(2)} USD (${pnlPercent >= 0 ? '+' : ''}${pnlPercent.toFixed(2)}%).`,
+      technicalIndicators: {},
+      riskLevel: 'LOW',
+      mode: 'PAPER',
+      logType: 'ORDER',
     });
 
     console.log(`Paper trade closed [${pos.pair}]: PnL $${pnlUSD.toFixed(2)} (${pnlPercent.toFixed(2)}%) - ${reason || ''}`);
