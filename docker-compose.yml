@@ -1,0 +1,19 @@
+services:
+  kraken-gemini-trader:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kraken-gemini-trader
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-1.5-pro}
+      - KRAKEN_API_KEY=${KRAKEN_API_KEY}
+      - KRAKEN_API_SECRET=${KRAKEN_API_SECRET}
+      - DEFAULT_TRADING_MODE=${DEFAULT_TRADING_MODE:-PAPER}
+      - INITIAL_PAPER_BALANCE=${INITIAL_PAPER_BALANCE:-10000}
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
