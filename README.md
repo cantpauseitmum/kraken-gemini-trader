@@ -1,6 +1,6 @@
-# 🚀 KrakAI Trader (v0.0.9-alpha)
+# 🚀 KrakAI Trader (v0.1.2-beta)
 
-An autonomous AI-powered cryptocurrency trading system operating on **Google Gemini Pro**, integrated directly with **Kraken Exchange**. Features **Paper Trading**, **Real-Money Trading**, a **Strategy Presets Manager**, **Historical Backtesting Engine**, and complete **Docker & Portainer deployment setups**.
+An autonomous AI-powered cryptocurrency trading system operating on **Google Gemini Pro**, integrated directly with **Kraken Exchange**. Features **Paper Trading**, **Real-Money Trading**, a **Strategy Presets Manager** with live **Dashboard Active Strategy Display**, **Historical Backtesting Engine**, and complete **Docker & Portainer deployment setups**.
 
 ---
 
@@ -11,7 +11,8 @@ An autonomous AI-powered cryptocurrency trading system operating on **Google Gem
   - Outputs structured JSON trade signals (`BUY`, `SELL`, `HOLD`, Position Size %, Stop Loss %, Take Profit %, Confidence %, Rationale).
   - Dynamic Google ModelService integration with live model downloader (`gemini-2.0-flash`, `gemini-1.5-flash`, `gemini-1.5-pro-latest`).
 
-- **🎛️ Strategy Presets & Custom Profiles**:
+- **🎛️ Strategy Presets & Dashboard Display**:
+  - Prominent **Active Strategy Profile Banner** displayed on the Live Dashboard UI with timeframe, position size, and stop loss / take profit indicators.
   - Pre-built templates: **Conservative Trend Follower**, **Gemini Deep Quant (Balanced)**, and **Aggressive Momentum Scalper**.
   - Custom Strategy Builder: Configure AI Personas, custom technical indicator thresholds, and risk rules.
   - Privacy-First Storage: User strategy presets saved locally in `data/strategies.json` (excluded from git via `.gitignore`).
