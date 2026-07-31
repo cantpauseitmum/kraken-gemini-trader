@@ -310,7 +310,7 @@ if (fs.existsSync(distDir)) {
 // Start server
 app.listen(PORT, () => {
   console.log(`====================================================`);
-  console.log(`Kraken Gemini AI Trader running on http://localhost:${PORT}`);
+  console.log(`KrakAI Trader running on http://localhost:${PORT}`);
   console.log(`Trading Mode: ${storage.getSettings().tradingMode}`);
   console.log(`====================================================`);
   startAutoTradeLoop();

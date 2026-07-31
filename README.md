@@ -1,4 +1,4 @@
-# 🚀 Kraken Gemini AI Trader (v0.0.8-alpha)
+# 🚀 KrakAI Trader (v0.0.9-alpha)
 
 An autonomous AI-powered cryptocurrency trading system operating on **Google Gemini Pro**, integrated directly with **Kraken Exchange**. Features **Paper Trading**, **Real-Money Trading**, a **Strategy Presets Manager**, **Historical Backtesting Engine**, and complete **Docker & Portainer deployment setups**.
 
@@ -41,10 +41,10 @@ In Portainer (**Stacks** ➔ **Add stack** ➔ **Web editor**), paste the follow
 
 ```yaml
 services:
-  kraken-gemini-trader:
+  krakai-trader:
     build:
       context: https://github.com/cantpauseitmum/kraken-gemini-trader.git#main
-    container_name: kraken-gemini-trader
+    container_name: krakai-trader
     ports:
       - "8095:3000"
       - "8096:3001"

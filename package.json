@@ -1,8 +1,8 @@
 {
-  "name": "kraken-gemini-trader",
-  "version": "0.0.8",
+  "name": "krakai-trader",
+  "version": "0.0.9",
   "type": "module",
-  "description": "AI Trading System powered by Gemini Pro with Kraken integration, Paper Trading, Backtesting, and Docker setup",
+  "description": "KrakAI Trader - AI Trading System powered by Gemini Pro with Kraken integration",
   "main": "server/index.ts",
   "scripts": {
     "dev:server": "tsx watch server/index.ts",

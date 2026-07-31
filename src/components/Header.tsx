@@ -60,9 +60,9 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="font-bold text-lg text-white tracking-wide">Kraken Gemini AI</h1>
+            <h1 className="font-bold text-lg text-white tracking-wide">KrakAI Trader</h1>
             <span className="px-2 py-0.5 text-xs font-semibold rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">
-              {versionStatus?.currentVersion || 'v0.0.6-alpha'}
+              {versionStatus?.currentVersion || 'v0.0.9-alpha'}
             </span>
 
             {versionStatus?.updateAvailable && (

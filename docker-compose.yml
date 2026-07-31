@@ -1,9 +1,9 @@
 services:
-  kraken-gemini-trader:
+  krakai-trader:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: kraken-gemini-trader
+    container_name: krakai-trader
     ports:
       - "${HOST_PORT:-8095}:3000"
       - "${API_PORT:-8096}:3001"
