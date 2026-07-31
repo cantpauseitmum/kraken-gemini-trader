@@ -144,7 +144,7 @@ export const App: React.FC = () => {
   };
 
   const handleUpdateSettings = async (newSettings: Partial<AppSettings>) => {
-    // Optimistic UI state update for 0ms instant button re-rendering
+    // 1. Optimistic UI update for instant button re-rendering
     setSettings((prev) => (prev ? { ...prev, ...newSettings } : null));
 
     try {
@@ -154,11 +154,14 @@ export const App: React.FC = () => {
         body: JSON.stringify(newSettings),
       });
       const data = await res.json();
-      if (data.settings) {
-        setSettings(data.settings);
+      const serverSettings = data.settings || data;
+      if (serverSettings) {
+        setSettings(serverSettings);
       }
-      fetchPositions();
-      fetchAccountBalance();
+
+      // 2. Fetch positions & account balance AFTER server settings are saved
+      await fetchPositions();
+      await fetchAccountBalance();
     } catch (e) {
       console.error('Error updating settings:', e);
     }
