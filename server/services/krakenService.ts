@@ -254,6 +254,101 @@ export class KrakenService {
   }
 
   /**
+   * Fetch open positions directly from Kraken (Requires API Key + Secret)
+   */
+  async getOpenPositions(apiKey: string, apiSecret: string): Promise<any[]> {
+    if (!apiKey || !apiSecret) return [];
+    try {
+      const path = '/0/private/OpenPositions';
+      const nonce = Date.now().toString();
+      const postData = { nonce };
+      const signature = this.getMessageSignature(path, postData, apiSecret);
+
+      const res = await fetch(`${this.baseUrl}${path}`, {
+        method: 'POST',
+        headers: {
+          'API-Key': apiKey,
+          'API-Sign': signature,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams(postData).toString(),
+      });
+
+      const data = await res.json();
+      if (data.error && data.error.length > 0) {
+        console.warn('Kraken OpenPositions API warning:', data.error.join(', '));
+        return [];
+      }
+
+      const result = data.result || {};
+      return Object.entries(result).map(([txid, pos]: [string, any]) => ({
+        id: txid,
+        pair: pos.pair || 'XBTUSD',
+        side: pos.type === 'buy' ? 'BUY' : 'SELL',
+        entryPrice: parseFloat(pos.cost) / (parseFloat(pos.vol) || 1),
+        currentPrice: parseFloat(pos.cost) / (parseFloat(pos.vol) || 1),
+        amount: parseFloat(pos.vol),
+        valueUSD: parseFloat(pos.cost),
+        timestamp: Math.floor(parseFloat(pos.time) * 1000),
+        status: 'OPEN',
+        pnlUSD: parseFloat(pos.net || '0'),
+        pnlPercent: 0,
+      }));
+    } catch (e: any) {
+      console.warn('Error fetching Kraken OpenPositions:', e.message);
+      return [];
+    }
+  }
+
+  /**
+   * Fetch trades history directly from Kraken (Requires API Key + Secret)
+   */
+  async getTradesHistory(apiKey: string, apiSecret: string): Promise<any[]> {
+    if (!apiKey || !apiSecret) return [];
+    try {
+      const path = '/0/private/TradesHistory';
+      const nonce = Date.now().toString();
+      const postData = { nonce };
+      const signature = this.getMessageSignature(path, postData, apiSecret);
+
+      const res = await fetch(`${this.baseUrl}${path}`, {
+        method: 'POST',
+        headers: {
+          'API-Key': apiKey,
+          'API-Sign': signature,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams(postData).toString(),
+      });
+
+      const data = await res.json();
+      if (data.error && data.error.length > 0) {
+        console.warn('Kraken TradesHistory API warning:', data.error.join(', '));
+        return [];
+      }
+
+      const trades = data.result?.trades || {};
+      return Object.entries(trades).slice(0, 20).map(([txid, trade]: [string, any]) => ({
+        id: txid,
+        pair: trade.pair || 'XBTUSD',
+        side: trade.type === 'buy' ? 'BUY' : 'SELL',
+        entryPrice: parseFloat(trade.price),
+        currentPrice: parseFloat(trade.price),
+        amount: parseFloat(trade.vol),
+        valueUSD: parseFloat(trade.cost),
+        timestamp: Math.floor(parseFloat(trade.time) * 1000),
+        status: 'CLOSED',
+        pnlUSD: 0,
+        pnlPercent: 0,
+        reason: 'Executed on Kraken',
+      }));
+    } catch (e: any) {
+      console.warn('Error fetching Kraken TradesHistory:', e.message);
+      return [];
+    }
+  }
+
+  /**
    * Test connection to Kraken API (Public ticker & optional private balance)
    */
   async testConnection(apiKey?: string, apiSecret?: string): Promise<{ success: boolean; message: string; balances?: Record<string, number> }> {

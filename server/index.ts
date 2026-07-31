@@ -292,8 +292,31 @@ app.get('/api/account/balance', async (req, res) => {
 });
 
 // Positions & Trade History
-app.get('/api/positions', (req, res) => {
-  res.json(storage.getPositions());
+app.get('/api/positions', async (req, res) => {
+  const settings = storage.getSettings();
+  if (settings.tradingMode === 'PAPER') {
+    return res.json(storage.getPositions());
+  }
+
+  // REAL Mode: Fetch live positions & trade history from Kraken
+  if (!settings.krakenApiKey || !settings.krakenApiSecret) {
+    return res.json([]);
+  }
+
+  try {
+    const realOpen = await krakenService.getOpenPositions(
+      settings.krakenApiKey,
+      settings.krakenApiSecret
+    );
+    const realHistory = await krakenService.getTradesHistory(
+      settings.krakenApiKey,
+      settings.krakenApiSecret
+    );
+    res.json([...realOpen, ...realHistory]);
+  } catch (e: any) {
+    console.warn('Error fetching REAL positions from Kraken:', e.message);
+    res.json([]);
+  }
 });
 
 app.post('/api/positions/close', async (req, res) => {
