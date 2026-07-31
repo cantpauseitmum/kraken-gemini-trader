@@ -66,13 +66,20 @@ export interface ThoughtLog {
   id: string;
   timestamp: string;
   pair: string;
-  action: 'BUY' | 'SELL' | 'HOLD';
+  action: 'BUY' | 'SELL' | 'HOLD' | 'ERROR' | 'INFO';
   confidence: number;
   price: number;
   reasoning: string;
   technicalIndicators: Record<string, any>;
   riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
   mode: 'PAPER' | 'REAL' | 'BACKTEST';
+  logType?: 'ANALYSIS' | 'ORDER' | 'SYSTEM' | 'ERROR';
+  errorDetails?: {
+    provider?: 'GEMINI' | 'KRAKEN' | 'SYSTEM';
+    code?: string;
+    rawMessage: string;
+    suggestion?: string;
+  };
 }
 
 const DATA_DIR = path.resolve(process.cwd(), 'data');
