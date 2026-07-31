@@ -1,14 +1,20 @@
 import React from 'react';
 import { TradePosition } from '../types';
-import { DollarSign, XCircle, TrendingUp, TrendingDown, Clock, ShieldCheck } from 'lucide-react';
+import { DollarSign, XCircle, TrendingUp, TrendingDown, Clock, ShieldCheck, AlertTriangle, Key } from 'lucide-react';
 
 interface PositionsTableProps {
   positions: TradePosition[];
   onClosePosition: (id: string, pair: string) => void;
   paperBalance: number;
+  accountInfo?: {
+    mode: string;
+    balanceUSD: number | null;
+    hasKeys: boolean;
+    error?: string;
+  };
 }
 
-export const PositionsTable: React.FC<PositionsTableProps> = ({ positions, onClosePosition, paperBalance }) => {
+export const PositionsTable: React.FC<PositionsTableProps> = ({ positions, onClosePosition, paperBalance, accountInfo }) => {
   const openPositions = positions.filter((p) => p.status === 'OPEN');
   const closedPositions = positions.filter((p) => p.status === 'CLOSED');
 
@@ -16,14 +22,57 @@ export const PositionsTable: React.FC<PositionsTableProps> = ({ positions, onClo
 
   return (
     <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <DollarSign className="w-5 h-5" />
+          </div>
+          <div>
+            <span className="text-xs text-gray-400 block font-mono">
+              {accountInfo?.mode === 'REAL' ? 'REAL KRAKEN BALANCE' : 'PAPER TRADING BALANCE'}
+            </span>
+            <span className="text-lg font-bold text-white font-mono">
+              {accountInfo?.mode === 'REAL' ? (
+                accountInfo.balanceUSD !== null ? (
+                  `$${accountInfo.balanceUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`
+                ) : (
+                  <span className="text-amber-400 text-sm">Kraken API Keys Required</span>
+                )
+              ) : (
+                `$${(paperBalance || 10000).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`
+              )}
+            </span>
+          </div>
+        </div>
+
+        {accountInfo?.mode === 'REAL' && !accountInfo?.hasKeys && (
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs">
+            <AlertTriangle className="w-4 h-4 text-amber-400" />
+            <span>REAL Mode Active — Please add your Kraken API Key & Secret in Settings.</span>
+          </div>
+        )}
+      </div>
+
       {/* Portfolio Header Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="glass-panel p-5 rounded-2xl border border-gray-800">
-          <span className="text-xs text-gray-400 block font-medium">VIRTUAL PAPER BALANCE</span>
+          <span className="text-xs text-gray-400 block font-medium">
+            {accountInfo?.mode === 'REAL' ? 'REAL KRAKEN BALANCE' : 'VIRTUAL PAPER BALANCE'}
+          </span>
           <div className="text-2xl font-bold font-mono text-emerald-400 mt-1">
-            ${paperBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })} USD
+            {accountInfo?.mode === 'REAL' ? (
+              accountInfo?.balanceUSD !== null && accountInfo?.balanceUSD !== undefined ? (
+                `$${accountInfo.balanceUSD.toLocaleString(undefined, { minimumFractionDigits: 2 })} USD`
+              ) : (
+                <span className="text-amber-400 text-sm font-normal">Keys Required</span>
+              )
+            ) : (
+              `$${(paperBalance || 10000).toLocaleString(undefined, { minimumFractionDigits: 2 })} USD`
+            )}
           </div>
-          <span className="text-[10px] text-gray-500">Available capital for Paper Trading</span>
+          <span className="text-[10px] text-gray-500">
+            {accountInfo?.mode === 'REAL' ? 'Live Kraken account funds' : 'Available capital for Paper Trading'}
+          </span>
         </div>
 
         <div className="glass-panel p-5 rounded-2xl border border-gray-800">

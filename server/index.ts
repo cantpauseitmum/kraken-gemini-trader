@@ -247,6 +247,50 @@ app.post('/api/ai/analyze', async (req, res) => {
   }
 });
 
+// Account Balance & Real/Paper Status
+app.get('/api/account/balance', async (req, res) => {
+  const settings = storage.getSettings();
+  if (settings.tradingMode === 'PAPER') {
+    return res.json({
+      mode: 'PAPER',
+      balanceUSD: settings.paperBalanceUSD,
+      hasKeys: true,
+    });
+  }
+
+  // REAL Trading Mode
+  if (!settings.krakenApiKey || !settings.krakenApiSecret) {
+    return res.json({
+      mode: 'REAL',
+      balanceUSD: null,
+      hasKeys: false,
+      error: 'Kraken API Key & Secret not configured in Settings.',
+    });
+  }
+
+  try {
+    const balances = await krakenService.getAccountBalances(
+      settings.krakenApiKey,
+      settings.krakenApiSecret
+    );
+    // Extract USD or ZUSD balance
+    const usdBalance = balances['ZUSD'] || balances['USD'] || 0;
+    res.json({
+      mode: 'REAL',
+      balanceUSD: usdBalance,
+      allBalances: balances,
+      hasKeys: true,
+    });
+  } catch (err: any) {
+    res.json({
+      mode: 'REAL',
+      balanceUSD: null,
+      hasKeys: true,
+      error: err.message,
+    });
+  }
+});
+
 // Positions & Trade History
 app.get('/api/positions', (req, res) => {
   res.json(storage.getPositions());

@@ -19,6 +19,7 @@ export const App: React.FC = () => {
   const [backtests, setBacktests] = useState<BacktestResult[]>([]);
   const [strategies, setStrategies] = useState<any[]>([]);
   const [versionStatus, setVersionStatus] = useState<any>(null);
+  const [accountInfo, setAccountInfo] = useState<any>(null);
 
   const [activeTab, setActiveTab] = useState('dashboard');
   const [activePair, setActivePair] = useState('XBTUSD');
@@ -34,9 +35,20 @@ export const App: React.FC = () => {
     fetchThoughts();
     fetchBacktests();
     fetchStrategies();
+    fetchAccountBalance();
     checkHealth();
     checkVersionStatus();
   }, []);
+
+  const fetchAccountBalance = async () => {
+    try {
+      const res = await fetch('/api/account/balance');
+      const data = await res.json();
+      setAccountInfo(data);
+    } catch (e) {
+      console.warn('Error fetching account balance:', e);
+    }
+  };
 
   const fetchStrategies = async () => {
     try {
@@ -139,9 +151,11 @@ export const App: React.FC = () => {
         body: JSON.stringify(newSettings),
       });
       const data = await res.json();
-      setSettings(data.settings);
+      setSettings(data);
+      fetchPositions();
+      fetchAccountBalance();
     } catch (e) {
-      console.error('Error saving settings:', e);
+      console.error('Error updating settings:', e);
     }
   };
 
@@ -322,6 +336,7 @@ export const App: React.FC = () => {
                   positions={positions}
                   onClosePosition={handleClosePosition}
                   paperBalance={settings.paperBalanceUSD}
+                  accountInfo={accountInfo}
                 />
               </div>
 
