@@ -1,6 +1,7 @@
 import { storage, TradePosition, ThoughtLog } from './storageService.js';
 import { krakenService } from './krakenService.js';
 import { geminiService, GeminiTradeDecision } from './geminiService.js';
+import { Logger } from '../utils/logger.js';
 
 export class PaperTradingEngine {
   /**
@@ -69,6 +70,8 @@ export class PaperTradingEngine {
       // Deduct balance
       storage.saveSettings({ paperBalanceUSD: balance - allocatedUSD });
       storage.addPosition(newPos);
+
+      Logger.info('PAPER-ENGINE', `PAPER ORDER EXECUTED: Bought ${amount.toFixed(6)} ${pair} @ $${currentPrice.toLocaleString()} (Value: $${allocatedUSD.toFixed(2)} USD). StopLoss: $${stopLossPrice.toFixed(2)}, TakeProfit: $${takeProfitPrice.toFixed(2)}.`);
 
       // Log trade execution event
       storage.addThought({

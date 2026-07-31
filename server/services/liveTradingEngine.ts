@@ -1,13 +1,14 @@
 import { krakenService } from './krakenService.js';
 import { storage, TradePosition } from './storageService.js';
 import { GeminiTradeDecision } from './geminiService.js';
+import { Logger } from '../utils/logger.js';
 
 export class LiveTradingEngine {
   private panicStopEnabled = false;
 
   public setPanicStop(enabled: boolean) {
     this.panicStopEnabled = enabled;
-    console.warn(`[SAFETY ALERT] Emergency Panic Switch ${enabled ? 'ACTIVATED' : 'Deactivated'}`);
+    Logger.warn('SAFETY', `Emergency Panic Switch ${enabled ? 'ACTIVATED' : 'Deactivated'}.`);
   }
 
   public isPanicStopActive(): boolean {
@@ -57,7 +58,7 @@ export class LiveTradingEngine {
       const allocUSD = Math.min(maxUSD, (10000 * settings.riskManagement.maxPositionSizePercent) / 100);
       const volume = (allocUSD / currentPrice).toFixed(6);
 
-      console.log(`[REAL ORDER] Submitting BUY to Kraken for ${pair}: Volume ${volume} @ Market (~$${currentPrice})`);
+      Logger.info('LIVE-ENGINE', `Submitting REAL BUY order to Kraken for ${pair}: Volume ${volume} @ Market (~$${currentPrice.toLocaleString()})`);
 
       try {
         const res = await krakenService.placeOrder(

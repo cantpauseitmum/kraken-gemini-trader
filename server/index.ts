@@ -11,6 +11,7 @@ import { liveTradingEngine } from './services/liveTradingEngine.js';
 import { backtestEngine } from './services/backtestEngine.js';
 import { strategyManager } from './services/strategyManager.js';
 import { versionService } from './services/versionService.js';
+import { Logger } from './utils/logger.js';
 
 dotenv.config();
 
@@ -26,10 +27,13 @@ let autoTradeTimer: NodeJS.Timeout | null = null;
 function startAutoTradeLoop() {
   if (autoTradeTimer) clearInterval(autoTradeTimer);
   const settings = storage.getSettings();
-  if (!settings.autoTradeEnabled) return;
+  if (!settings.autoTradeEnabled) {
+    Logger.info('AUTO-TRADE', 'Autonomous trading loop paused.');
+    return;
+  }
 
   const intervalMs = Math.max(1, settings.tradeIntervalMinutes || 15) * 60 * 1000;
-  console.log(`Auto-trade loop active. Running every ${settings.tradeIntervalMinutes} minutes.`);
+  Logger.info('AUTO-TRADE', `Autonomous trading loop ACTIVATED. Running every ${settings.tradeIntervalMinutes} minutes for ${settings.activePair} in ${settings.tradingMode} mode.`);
 
   autoTradeTimer = setInterval(async () => {
     try {
@@ -37,11 +41,18 @@ function startAutoTradeLoop() {
       if (!currentSettings.autoTradeEnabled) return;
 
       const pair = currentSettings.activePair || 'XBTUSD';
-      console.log(`[AUTO-TRADE LOOP] Analyzing ${pair}...`);
+      Logger.info('AUTO-TRADE', `[SCHEDULED TICK] Executing market evaluation for ${pair} in ${currentSettings.tradingMode} mode...`);
 
       const ticker = await krakenService.getTicker(pair);
       const candles = await krakenService.getOHLCV(pair, 60);
       const { decision, indicators } = await geminiService.analyzeMarket(pair, ticker, candles);
+
+      Logger.info('GEMINI-AI', `Market Evaluation Result: Signal=${decision.action}, Confidence=${decision.confidence}%, Risk=${decision.riskLevel}`, {
+        pair,
+        price: ticker.last,
+        action: decision.action,
+        confidence: decision.confidence,
+      });
 
       // Save thought log
       storage.addThought({
@@ -67,7 +78,7 @@ function startAutoTradeLoop() {
         await liveTradingEngine.executeLiveSignal(pair, decision, ticker.last);
       }
     } catch (err: any) {
-      console.error('[AUTO-TRADE LOOP ERROR]:', err.message);
+      Logger.error('AUTO-TRADE', `Auto-trade loop execution failed: ${err.message}`, { stack: err.stack });
     }
   }, intervalMs);
 }
@@ -104,6 +115,7 @@ app.post('/api/settings', (req, res) => {
 
   // Log Trading Mode Switch
   if (req.body.tradingMode && req.body.tradingMode !== current.tradingMode) {
+    Logger.info('SETTINGS', `Trading Mode switched from ${current.tradingMode} to ${req.body.tradingMode} MONEY mode.`);
     storage.addThought({
       id: `sys_${Date.now()}`,
       timestamp: new Date().toISOString(),
@@ -121,6 +133,7 @@ app.post('/api/settings', (req, res) => {
 
   // Log Auto-Trade Loop Toggle
   if (req.body.autoTradeEnabled !== undefined && req.body.autoTradeEnabled !== current.autoTradeEnabled) {
+    Logger.info('SETTINGS', `Autonomous Trading Loop ${req.body.autoTradeEnabled ? 'ACTIVATED' : 'PAUSED'}.`);
     storage.addThought({
       id: `sys_${Date.now()}`,
       timestamp: new Date().toISOString(),
