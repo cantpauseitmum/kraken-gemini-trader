@@ -120,6 +120,27 @@ export const GeminiThoughtStream: React.FC<GeminiThoughtStreamProps> = ({ though
               );
             }
 
+            // SYSTEM / INFO LOG CARD
+            if (log.action === 'INFO' || log.logType === 'SYSTEM') {
+              return (
+                <div
+                  key={log.id}
+                  className="p-3.5 rounded-xl bg-cyan-950/30 border border-cyan-500/30 flex items-center justify-between text-xs space-x-2"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-mono">
+                      SYSTEM EVENT
+                    </span>
+                    <span className="text-gray-200 font-medium">{log.reasoning}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-gray-400 font-mono text-[10px] shrink-0">
+                    <Clock className="w-3 h-3 text-cyan-400" />
+                    {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+              );
+            }
+
             // STANDARD AI SIGNAL LOG CARD
             const badgeClass = isBuy ? 'badge-buy' : isSell ? 'badge-sell' : 'badge-hold';
 

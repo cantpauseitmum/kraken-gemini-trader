@@ -100,6 +100,42 @@ app.get('/api/settings', (req, res) => {
 });
 
 app.post('/api/settings', (req, res) => {
+  const current = storage.getSettings();
+
+  // Log Trading Mode Switch
+  if (req.body.tradingMode && req.body.tradingMode !== current.tradingMode) {
+    storage.addThought({
+      id: `sys_${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      pair: req.body.activePair || current.activePair || 'XBTUSD',
+      action: 'INFO',
+      confidence: 100,
+      price: 0,
+      reasoning: `SYSTEM EVENT: Trading Mode switched to ${req.body.tradingMode} mode.`,
+      technicalIndicators: {},
+      riskLevel: 'LOW',
+      mode: req.body.tradingMode,
+      logType: 'SYSTEM',
+    });
+  }
+
+  // Log Auto-Trade Loop Toggle
+  if (req.body.autoTradeEnabled !== undefined && req.body.autoTradeEnabled !== current.autoTradeEnabled) {
+    storage.addThought({
+      id: `sys_${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      pair: current.activePair || 'XBTUSD',
+      action: 'INFO',
+      confidence: 100,
+      price: 0,
+      reasoning: `SYSTEM EVENT: Autonomous Trading Loop ${req.body.autoTradeEnabled ? 'ACTIVATED (Interval: ' + (req.body.tradeIntervalMinutes || current.tradeIntervalMinutes || 15) + 'm)' : 'PAUSED'}.`,
+      technicalIndicators: {},
+      riskLevel: 'LOW',
+      mode: current.tradingMode,
+      logType: 'SYSTEM',
+    });
+  }
+
   const updated = storage.saveSettings(req.body);
   startAutoTradeLoop();
   res.json({ success: true, settings: updated });
