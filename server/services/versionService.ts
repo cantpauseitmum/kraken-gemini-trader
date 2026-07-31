@@ -1,4 +1,4 @@
-export const CURRENT_VERSION = 'v0.1.5-beta';
+export const CURRENT_VERSION = 'v0.1.6-beta';
 export const GITHUB_REPO = 'cantpauseitmum/kraken-gemini-trader';
 
 export interface VersionStatus {
