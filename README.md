@@ -43,7 +43,7 @@ In Portainer (**Stacks** ➔ **Add stack** ➔ **Web editor**), paste the follow
 services:
   kraken-gemini-trader:
     build:
-      context: https://github.com/cantpauseitmum/kraken-gemini-trader.git#v0.0.8-alpha
+      context: https://github.com/cantpauseitmum/kraken-gemini-trader.git#main
     container_name: kraken-gemini-trader
     ports:
       - "8095:3000"
