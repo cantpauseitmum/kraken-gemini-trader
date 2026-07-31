@@ -105,7 +105,31 @@ app.post('/api/settings', (req, res) => {
   res.json({ success: true, settings: updated });
 });
 
-// ---------------- STRATEGY PRESETS API ----------------
+// Portainer Webhook Redeploy Endpoint
+app.post('/api/settings/redeploy-portainer', async (req, res) => {
+  const { webhookUrl } = req.body;
+  const targetUrl = webhookUrl || storage.getSettings().portainerWebhookUrl;
+
+  if (!targetUrl) {
+    return res.status(400).json({ success: false, message: 'No Portainer Webhook URL configured.' });
+  }
+
+  try {
+    // Disable SSL verification for self-signed Portainer certificates if needed
+    const response = await fetch(targetUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    res.json({
+      success: response.ok,
+      status: response.status,
+      message: response.ok ? 'Portainer stack update triggered successfully!' : `Portainer returned HTTP status ${response.status}`,
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: `Failed to trigger Portainer webhook: ${err.message}` });
+  }
+});
 app.get('/api/strategies', (req, res) => {
   res.json(strategyManager.getStrategies());
 });

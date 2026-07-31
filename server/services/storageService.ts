@@ -6,6 +6,7 @@ export interface AppSettings {
   geminiModel: string;
   krakenApiKey: string;
   krakenApiSecret: string;
+  portainerWebhookUrl?: string;
   tradingMode: 'PAPER' | 'REAL';
   activePair: string;
   activeStrategyId?: string;

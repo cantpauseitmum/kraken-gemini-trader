@@ -12,10 +12,8 @@ interface SettingsModalProps {
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings, onSave }) => {
   const [geminiApiKey, setGeminiApiKey] = useState(settings.geminiApiKey);
   const [geminiModel, setGeminiModel] = useState(settings.geminiModel || 'gemini-2.0-flash');
-  const [krakenApiKey, setKrakenApiKey] = useState(settings.krakenApiKey);
-  const [krakenApiSecret, setKrakenApiSecret] = useState(settings.krakenApiSecret);
-
-  // Available Gemini models list
+  const [geminiApiKey, setGeminiApiKey] = useState(settings?.geminiApiKey || '');
+  const [geminiModel, setGeminiModel] = useState(settings?.geminiModel || 'gemini-2.0-flash');
   const [availableModels, setAvailableModels] = useState<{ id: string; displayName: string }[]>([
     { id: 'gemini-2.5-flash', displayName: 'Gemini 2.5 Flash' },
     { id: 'gemini-2.0-flash', displayName: 'Gemini 2.0 Flash' },
@@ -24,6 +22,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
   ]);
   const [isFetchingModels, setIsFetchingModels] = useState(false);
   const [modelFetchMessage, setModelFetchMessage] = useState<string | null>(null);
+
+  const [krakenApiKey, setKrakenApiKey] = useState(settings?.krakenApiKey || '');
+  const [krakenApiSecret, setKrakenApiSecret] = useState(settings?.krakenApiSecret || '');
+
+  const [portainerWebhookUrl, setPortainerWebhookUrl] = useState(settings?.portainerWebhookUrl || '');
+  const [triggeringRedeploy, setTriggeringRedeploy] = useState(false);
+  const [redeployResult, setRedeployResult] = useState<{ success?: boolean; message?: string } | null>(null);
 
   // Connection test states
   const [testingGemini, setTestingGemini] = useState(false);
@@ -102,6 +107,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
     }
   };
 
+  const handleTriggerRedeploy = async () => {
+    if (!portainerWebhookUrl || portainerWebhookUrl.trim() === '') {
+      setRedeployResult({ success: false, message: 'Please enter a valid Portainer Webhook URL first.' });
+      return;
+    }
+
+    setTriggeringRedeploy(true);
+    setRedeployResult(null);
+    try {
+      const res = await fetch('/api/settings/redeploy-portainer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ webhookUrl: portainerWebhookUrl }),
+      });
+      const data = await res.json();
+      setRedeployResult(data);
+    } catch (e: any) {
+      setRedeployResult({ success: false, message: e.message || 'Error triggering Portainer webhook' });
+    } finally {
+      setTriggeringRedeploy(false);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave({
@@ -109,6 +137,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
       geminiModel,
       krakenApiKey,
       krakenApiSecret,
+      portainerWebhookUrl,
     });
     onClose();
   };
@@ -270,8 +299,62 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
                   ) : (
                     <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
                   )}
-                  <span className="break-words break-all max-w-full min-w-0 overflow-hidden text-[11px] leading-relaxed">
+                  <span className="break-words break-all whitespace-normal leading-relaxed min-w-0 font-mono text-[11px]">
                     {krakenTestResult.message}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Portainer Webhook Redeploy Section */}
+          <div className="space-y-3 p-4 rounded-xl bg-slate-900/60 border border-gray-800">
+            <div className="flex items-center justify-between text-xs font-bold text-cyan-400 uppercase tracking-wider">
+              <span className="flex items-center gap-1.5">
+                <RefreshCw className="w-4 h-4" />
+                Portainer Stack Webhook
+              </span>
+              <span className="text-[10px] text-gray-400 font-mono">Auto-Redeploy</span>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs text-gray-300">Portainer Webhook URL</label>
+              <input
+                type="text"
+                value={portainerWebhookUrl}
+                onChange={(e) => setPortainerWebhookUrl(e.target.value)}
+                placeholder="https://100.x.x.x:9443/api/stacks/webhooks/..."
+                className="w-full bg-gray-950 text-white text-xs px-3.5 py-2 rounded-xl border border-gray-700 font-mono focus:outline-none focus:border-cyan-500"
+              />
+              <p className="text-[10px] text-gray-400">
+                Pasting your Portainer Webhook URL allows 1-click server redeployment directly from KrakAI Trader.
+              </p>
+            </div>
+
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={handleTriggerRedeploy}
+                disabled={triggeringRedeploy}
+                className="w-full flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-cyan-600/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-600/30 disabled:opacity-50 transition-all"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${triggeringRedeploy ? 'animate-spin' : ''}`} />
+                {triggeringRedeploy ? 'Triggering Portainer Build...' : 'Trigger Portainer Redeploy'}
+              </button>
+
+              {redeployResult && (
+                <div className={`mt-2 p-3 rounded-xl text-xs flex items-start gap-2.5 border max-w-full overflow-hidden min-w-0 ${
+                  redeployResult.success
+                    ? 'bg-emerald-950/50 border-emerald-500/40 text-emerald-300'
+                    : 'bg-rose-950/50 border-rose-500/40 text-rose-300'
+                }`}>
+                  {redeployResult.success ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                  )}
+                  <span className="break-words break-all whitespace-normal leading-relaxed min-w-0 font-mono text-[11px]">
+                    {redeployResult.message}
                   </span>
                 </div>
               )}
