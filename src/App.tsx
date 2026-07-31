@@ -144,6 +144,9 @@ export const App: React.FC = () => {
   };
 
   const handleUpdateSettings = async (newSettings: Partial<AppSettings>) => {
+    // Optimistic UI state update for 0ms instant button re-rendering
+    setSettings((prev) => (prev ? { ...prev, ...newSettings } : null));
+
     try {
       const res = await fetch('/api/settings', {
         method: 'POST',
@@ -151,7 +154,9 @@ export const App: React.FC = () => {
         body: JSON.stringify(newSettings),
       });
       const data = await res.json();
-      setSettings(data);
+      if (data.settings) {
+        setSettings(data.settings);
+      }
       fetchPositions();
       fetchAccountBalance();
     } catch (e) {

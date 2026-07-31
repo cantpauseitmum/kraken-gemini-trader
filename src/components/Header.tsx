@@ -41,9 +41,6 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const toggleTradingMode = () => {
     const nextMode = settings.tradingMode === 'PAPER' ? 'REAL' : 'PAPER';
-    if (nextMode === 'REAL' && !confirm('WARNING: Switching to REAL money trading mode will place real orders on Kraken using your funds. Continue?')) {
-      return;
-    }
     onUpdateSettings({ tradingMode: nextMode });
   };
 
