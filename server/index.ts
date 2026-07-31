@@ -15,7 +15,7 @@ import { versionService } from './services/versionService.js';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = parseInt(process.env.PORT || '3000', 10);
 
 app.use(cors());
 app.use(express.json());
@@ -301,16 +301,19 @@ app.post('/api/panic', (req, res) => {
 // Serve frontend build in production
 const distDir = path.resolve(process.cwd(), 'dist');
 if (fs.existsSync(distDir)) {
+  console.log(`Serving frontend static build from ${distDir}`);
   app.use(express.static(distDir));
   app.get('*', (req, res) => {
     res.sendFile(path.join(distDir, 'index.html'));
   });
+} else {
+  console.warn(`WARNING: Frontend dist directory not found at ${distDir}`);
 }
 
-// Start server
-app.listen(PORT, () => {
+// Start server listening on all network interfaces (0.0.0.0)
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`====================================================`);
-  console.log(`KrakAI Trader running on http://localhost:${PORT}`);
+  console.log(`KrakAI Trader running on http://0.0.0.0:${PORT}`);
   console.log(`Trading Mode: ${storage.getSettings().tradingMode}`);
   console.log(`====================================================`);
   startAutoTradeLoop();
