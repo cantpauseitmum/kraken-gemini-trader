@@ -32,6 +32,30 @@ const USER_STRATEGIES_FILE = path.join(DATA_DIR, 'strategies.json');
 
 const BUILT_IN_STRATEGIES: StrategyProfile[] = [
   {
+    id: 'builtin_micro_growth',
+    name: 'Micro-Capital Growth ($5–$50)',
+    description: 'Specifically engineered for growing small accounts ($5+). Uses 95% position sizing on SOLUSD so trades clear exchange minimum order limits with tight 2.0% stop-loss protection.',
+    isBuiltIn: true,
+    timeframeMinutes: 15,
+    aiPersona: 'SCALPER',
+    promptInstructions: 'Target high probability momentum breakouts on SOLUSD. Use 95% capital allocation per trade to pass Kraken minimum order size rules ($3.50+). Only enter when RSI confirms momentum and net gain target after 0.52% fees exceeds 2.5%.',
+    riskManagement: {
+      maxPositionSizePercent: 95,
+      stopLossPercent: 2.0,
+      takeProfitPercent: 5.5,
+      dailyLossLimitUSD: 10,
+      requireManualConfirmation: false,
+    },
+    technicalRules: {
+      rsiOversoldThreshold: 35,
+      rsiOverboughtThreshold: 65,
+      useMacdConfirmation: true,
+      useBollingerBandsFilter: false,
+    },
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
     id: 'builtin_conservative',
     name: 'Conservative Trend Follower',
     description: 'Low-risk momentum strategy focusing on SMA 50/200 crossovers and strict 2% stop-loss caps.',
