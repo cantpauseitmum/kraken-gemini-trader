@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Target } from 'lucide-react';
 import { Header } from './components/Header';
 import { MarketChart } from './components/MarketChart';
 import { GeminiThoughtStream } from './components/GeminiThoughtStream';
@@ -264,7 +265,7 @@ export const App: React.FC = () => {
                 <div className="glass-panel p-4 rounded-2xl border border-blue-500/30 bg-gradient-to-r from-slate-900/90 via-indigo-950/30 to-slate-900/90 flex flex-wrap items-center justify-between gap-4 shadow-lg shadow-blue-500/5">
                   <div className="flex items-center gap-3">
                     <div className="p-2.5 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-400 font-bold">
-                      🎯
+                      <Target className="w-5 h-5 text-blue-400" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
