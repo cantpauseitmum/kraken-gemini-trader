@@ -8,6 +8,7 @@ import { PositionsTable } from './components/PositionsTable';
 import { RiskControls } from './components/RiskControls';
 import { SettingsModal } from './components/SettingsModal';
 import { StrategyManager } from './components/StrategyManager';
+import { PortfolioScanner } from './components/PortfolioScanner';
 import { AppSettings, KrakenTicker, OHLCV, TradePosition, ThoughtLog, BacktestResult } from './types';
 
 export const App: React.FC = () => {
@@ -353,6 +354,16 @@ export const App: React.FC = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {activeTab === 'scanner' && (
+          <PortfolioScanner
+            settings={settings}
+            onSelectPair={(pair) => {
+              setActivePair(pair);
+              setActiveTab('dashboard');
+            }}
+          />
         )}
 
         {activeTab === 'strategies' && (

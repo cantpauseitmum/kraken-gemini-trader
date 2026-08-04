@@ -1,6 +1,6 @@
 {
   "name": "krakai-trader",
-  "version": "0.2.4-beta",
+  "version": "0.3.0-beta",
   "type": "module",
   "description": "KrakAI Trader - AI Trading System powered by Gemini Pro with Kraken integration",
   "main": "server/index.ts",

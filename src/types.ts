@@ -6,6 +6,8 @@ export interface AppSettings {
   portainerWebhookUrl?: string;
   tradingMode: 'PAPER' | 'REAL';
   activePair: string;
+  monitoredPairs?: string[];
+  multiPairScanEnabled?: boolean;
   activeStrategyId?: string;
   autoTradeEnabled: boolean;
   tradeIntervalMinutes: number;

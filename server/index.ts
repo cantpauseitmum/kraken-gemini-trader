@@ -40,42 +40,68 @@ function startAutoTradeLoop() {
       const currentSettings = storage.getSettings();
       if (!currentSettings.autoTradeEnabled) return;
 
-      const pair = currentSettings.activePair || 'XBTUSD';
-      Logger.info('AUTO-TRADE', `[SCHEDULED TICK] Executing market evaluation for ${pair} in ${currentSettings.tradingMode} mode...`);
+      const pairsToScan = currentSettings.multiPairScanEnabled && currentSettings.monitoredPairs && currentSettings.monitoredPairs.length > 0
+        ? currentSettings.monitoredPairs
+        : [currentSettings.activePair || 'SOLUSD'];
 
-      const ticker = await krakenService.getTicker(pair);
-      const candles = await krakenService.getOHLCV(pair, 60);
-      const { decision, indicators } = await geminiService.analyzeMarket(pair, ticker, candles);
+      Logger.info('AUTO-TRADE', `[SCHEDULED TICK] Multi-Pair Portfolio Scan active. Scanning ${pairsToScan.join(', ')} in ${currentSettings.tradingMode} mode...`);
 
-      Logger.info('GEMINI-AI', `Market Evaluation Result: Signal=${decision.action}, Confidence=${decision.confidence}%, Risk=${decision.riskLevel}`, {
-        pair,
-        price: ticker.last,
-        action: decision.action,
-        confidence: decision.confidence,
+      const scanResults: any[] = [];
+      for (const pair of pairsToScan) {
+        try {
+          const ticker = await krakenService.getTicker(pair);
+          const candles = await krakenService.getOHLCV(pair, 60);
+          const { decision, indicators } = await geminiService.analyzeMarket(pair, ticker, candles);
+          scanResults.push({ pair, ticker, decision, indicators });
+        } catch (e: any) {
+          Logger.error('AUTO-TRADE', `Error scanning pair ${pair}: ${e.message}`);
+        }
+      }
+
+      if (scanResults.length === 0) return;
+
+      // Sort by signal action (BUY/SELL > HOLD) and then by highest confidence score
+      scanResults.sort((a, b) => {
+        const actionPriority = (act: string) => (act === 'BUY' || act === 'SELL' ? 2 : 1);
+        const prioA = actionPriority(a.decision.action);
+        const prioB = actionPriority(b.decision.action);
+        if (prioA !== prioB) return prioB - prioA;
+        return b.decision.confidence - a.decision.confidence;
+      });
+
+      const top = scanResults[0];
+
+      Logger.info('GEMINI-AI', `Multi-Pair Scan Complete. Top Market Opportunity: ${top.pair} (Signal=${top.decision.action}, Confidence=${top.decision.confidence}%)`, {
+        scannedCount: scanResults.length,
+        topPair: top.pair,
+        topAction: top.decision.action,
+        topConfidence: top.decision.confidence,
       });
 
       // Save thought log
       storage.addThought({
         id: `thought_${Date.now()}`,
         timestamp: new Date().toISOString(),
-        pair,
-        action: decision.action,
-        confidence: decision.confidence,
-        price: ticker.last,
-        reasoning: decision.rationale,
-        technicalIndicators: indicators,
-        riskLevel: decision.riskLevel,
+        pair: top.pair,
+        action: top.decision.action,
+        confidence: top.decision.confidence,
+        price: top.ticker.last,
+        reasoning: `[MULTI-PAIR SCAN TOP CHOICE: ${top.pair}] ${top.decision.rationale}`,
+        technicalIndicators: top.indicators,
+        riskLevel: top.decision.riskLevel,
         mode: currentSettings.tradingMode,
       });
 
       // Update paper open positions (stop loss / take profit check)
-      await paperTradingEngine.updateOpenPositions({ [pair]: ticker.last });
+      await paperTradingEngine.updateOpenPositions({ [top.pair]: top.ticker.last });
 
-      // Execute trade signal
-      if (currentSettings.tradingMode === 'PAPER') {
-        await paperTradingEngine.executeSignal(pair, decision, ticker.last);
-      } else if (currentSettings.tradingMode === 'REAL') {
-        await liveTradingEngine.executeLiveSignal(pair, decision, ticker.last);
+      // Execute trade signal for top opportunity
+      if (top.decision.action !== 'HOLD') {
+        if (currentSettings.tradingMode === 'PAPER') {
+          await paperTradingEngine.executeSignal(top.pair, top.decision, top.ticker.last);
+        } else if (currentSettings.tradingMode === 'REAL') {
+          await liveTradingEngine.executeLiveSignal(top.pair, top.decision, top.ticker.last);
+        }
       }
     } catch (err: any) {
       Logger.error('AUTO-TRADE', `Auto-trade loop execution failed: ${err.message}`, { stack: err.stack });
@@ -356,6 +382,45 @@ app.post('/api/ai/analyze', async (req, res) => {
     storage.addThought(errThought);
 
     res.status(500).json({ error: e.message, thoughtLog: errThought });
+  }
+});
+
+// Multi-Pair Portfolio Scanner API
+app.post('/api/ai/scan-portfolio', async (req, res) => {
+  try {
+    const settings = storage.getSettings();
+    const pairs = req.body.pairs || settings.monitoredPairs || ['SOLUSD', 'XBTUSD', 'ETHUSD'];
+
+    Logger.info('PORTFOLIO-SCANNER', `Executing manual Multi-Pair Portfolio Scan across: ${pairs.join(', ')}`);
+
+    const scanResults: any[] = [];
+    for (const pair of pairs) {
+      try {
+        const ticker = await krakenService.getTicker(pair);
+        const candles = await krakenService.getOHLCV(pair, 60);
+        const { decision, indicators } = await geminiService.analyzeMarket(pair, ticker, candles);
+        scanResults.push({ pair, ticker, decision, indicators });
+      } catch (err: any) {
+        Logger.error('PORTFOLIO-SCANNER', `Failed analyzing pair ${pair}: ${err.message}`);
+      }
+    }
+
+    scanResults.sort((a, b) => {
+      const actionPriority = (act: string) => (act === 'BUY' || act === 'SELL' ? 2 : 1);
+      const prioA = actionPriority(a.decision.action);
+      const prioB = actionPriority(b.decision.action);
+      if (prioA !== prioB) return prioB - prioA;
+      return b.decision.confidence - a.decision.confidence;
+    });
+
+    res.json({
+      timestamp: new Date().toISOString(),
+      scannedCount: scanResults.length,
+      topOpportunity: scanResults[0] || null,
+      results: scanResults,
+    });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
   }
 });
 

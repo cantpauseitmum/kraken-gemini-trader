@@ -9,6 +9,8 @@ export interface AppSettings {
   portainerWebhookUrl?: string;
   tradingMode: 'PAPER' | 'REAL';
   activePair: string;
+  monitoredPairs?: string[];
+  multiPairScanEnabled?: boolean;
   activeStrategyId?: string;
   autoTradeEnabled: boolean;
   tradeIntervalMinutes: number;
@@ -100,8 +102,10 @@ const defaultSettings: AppSettings = {
   krakenApiKey: process.env.KRAKEN_API_KEY || '',
   krakenApiSecret: process.env.KRAKEN_API_SECRET || '',
   tradingMode: (process.env.DEFAULT_TRADING_MODE as 'PAPER' | 'REAL') || 'PAPER',
-  activePair: process.env.DEFAULT_PAIR || 'XBTUSD',
-  activeStrategyId: 'builtin_balanced',
+  activePair: process.env.DEFAULT_PAIR || 'SOLUSD',
+  monitoredPairs: ['SOLUSD', 'XBTUSD', 'ETHUSD'],
+  multiPairScanEnabled: true,
+  activeStrategyId: 'builtin_micro_growth',
   autoTradeEnabled: false,
   tradeIntervalMinutes: 15,
   paperBalanceUSD: parseFloat(process.env.INITIAL_PAPER_BALANCE || '10000'),
